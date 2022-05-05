@@ -16,17 +16,13 @@ type user struct {
 var mapUsers = make(map[string]user)
 var mapSessions = make(map[string]string)
 
-func getUser(w http.ResponseWriter, r *http.Request) user {
+func getUser(r *http.Request) user {
 	// get current session cookie
 	sessionCookie, err := r.Cookie("sessionId")
 	if err != nil { //if no cookie, just return empty user
-		id := uuid.NewV4()
-		sessionCookie = &http.Cookie{
-			Name:  "sessionId",
-			Value: id.String(),
-		}
+		return user{}
 	}
-	http.SetCookie(w, sessionCookie)
+
 	//if cookie exists, continue on
 	var myUser user
 	if userName, ok := mapSessions[sessionCookie.Value]; ok {
