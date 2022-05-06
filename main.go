@@ -2,16 +2,18 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"strconv"
 )
 
 import (
-	"fmt"
 	"html/template"
 )
 
 var tpl *template.Template
+var newBooking *BookingInfoNode
 
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
@@ -26,6 +28,8 @@ func main() {
 	http.HandleFunc("/admin_index", adminIndex)
 	http.HandleFunc("/admin_delete_users", deleteUsers)
 	http.HandleFunc("/admin_delete_sessions", deleteSessions)
+	http.HandleFunc("/new_booking", newBookingPage)
+	http.HandleFunc("/booking_confirmed", bookingConfirmed)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe("localhost:5221", nil)
 	if err != nil {
@@ -67,7 +71,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		setSessionIDCookie(w, username)
-		//fmt.Println(mapSessions)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -108,7 +111,6 @@ func logout(w http.ResponseWriter, r *http.Request) { //FIXME logout not deletin
 	sessionCookie, _ := r.Cookie("sessionId")
 
 	delete(mapSessions, sessionCookie.Value)
-	fmt.Println(mapSessions)
 	sessionCookie = &http.Cookie{
 		Name:   "sessionId",
 		Value:  "",
@@ -183,6 +185,48 @@ func deleteSessions(w http.ResponseWriter, r *http.Request) {
 		delete(mapSessions, sessionId)
 	}
 	err := tpl.ExecuteTemplate(w, "deleteSessions.html", mapSessions)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func newBookingPage(w http.ResponseWriter, r *http.Request) {
+	if getUser(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+
+	var err error
+	if r.Method == http.MethodPost {
+		car := r.FormValue("cars")
+		date := r.FormValue("date")
+		bookingTime, _ := strconv.Atoi(r.FormValue("bookingTime"))
+		userName := getUser(r).Username
+		pickUp := r.FormValue("pickUp")
+		dropOff := r.FormValue("dropOff")
+		contact, _ := strconv.Atoi(r.FormValue("contact"))
+		remarks := r.FormValue("remarks")
+
+		newBooking, err = bookings.makeNewBooking(car, date, bookingTime, userName, pickUp, dropOff, contact, remarks)
+		if err != nil {
+			fmt.Fprintf(w, "%v", err)
+			return
+		}
+		http.Redirect(w, r, "/booking_confirmed", http.StatusSeeOther)
+		return
+	}
+	err = tpl.ExecuteTemplate(w, "newBooking.html", nil)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func bookingConfirmed(w http.ResponseWriter, r *http.Request) {
+	if getUser(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	err := tpl.ExecuteTemplate(w, "bookingConfirmed.html", newBooking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
