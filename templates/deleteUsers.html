@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Users</title>
+</head>
+<body>
+  <h2>Delete Users</h2>
+  <form method="POST">
+      <table>
+          {{range $key, $val := .}}
+          <tr>
+              <td>Username: {{$key}}</td>
+              <td> | Name: {{$val.First}} {{$val.Last}}</td>
+              <td><button value="{{$key}}" name="username">Delete</button></td>
+          </tr>
+          {{end}}
+      </table>
+  </form>
+    <a href="http://localhost:5221/admin_index"><button>Admin Menu</button></a>
+</body>
+</html>

@@ -16,6 +16,14 @@ type user struct {
 var mapUsers = make(map[string]user)
 var mapSessions = make(map[string]string)
 
+func init() {
+	bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
+	mapUsers["khai"] = user{"khai", bPassword, "khai", "fazil"}
+	mapUsers["joseph"] = user{"joseph", bPassword, "joseph", "seow"}
+	mapUsers["doug"] = user{"doug", bPassword, "doug", "choo"}
+	mapUsers["iza"] = user{"iza", bPassword, "iza", "zainuddin"}
+}
+
 func getUser(r *http.Request) user {
 	// get current session cookie
 	sessionCookie, err := r.Cookie("sessionId")

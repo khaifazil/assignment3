@@ -24,6 +24,7 @@ func main() {
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/admin_login", adminLogin)
 	http.HandleFunc("/admin_index", adminIndex)
+	http.HandleFunc("/admin_delete_users", deleteUsers)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe("localhost:5221", nil)
 	if err != nil {
@@ -151,6 +152,17 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 func adminIndex(w http.ResponseWriter, r *http.Request) {
 	currentAdmin := getAdmin(r)
 	err := tpl.ExecuteTemplate(w, "adminIndex.html", currentAdmin)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func deleteUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		delete(mapUsers, username)
+	}
+	err := tpl.ExecuteTemplate(w, "deleteUsers.html", mapUsers)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}

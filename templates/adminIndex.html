@@ -8,8 +8,14 @@
         <h1>TRIFECTA LIMOS</h1>
         {{if .Username}}
         <h2>Welcome {{.Username}}</h2>
+        <a href="http://localhost:5221/admin_delete_users">
+                <button>Delete Users</button>
+        </a>
+        <a href="http://localhost:5221/delete_session">
+                <button>Delete Sessions</button>
+        </a>
         <a href="http://localhost:5221/logout">
-        <button>Logout</button>
+                <button>Logout</button>
         </a>
         {{else}}
         <h2>You are not logged in or do not have an account</h2>
