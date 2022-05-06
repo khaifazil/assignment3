@@ -8,13 +8,13 @@
         <h1>TRIFECTA LIMOS</h1>
         {{if .Username}}
         <h2>Welcome {{.Username}}</h2>
-        <a href="http://localhost:5221/admin_delete_users">
+        <a href="http://localhost:5221/admin_delete_users" style="text-decoration: none;">
                 <button>Delete Users</button>
         </a>
-        <a href="http://localhost:5221/delete_session">
+        <a href="http://localhost:5221/admin_delete_sessions" style="text-decoration: none;">
                 <button>Delete Sessions</button>
         </a>
-        <a href="http://localhost:5221/logout">
+        <a href="http://localhost:5221/logout" style="text-decoration: none;">
                 <button>Logout</button>
         </a>
         {{else}}

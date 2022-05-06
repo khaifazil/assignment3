@@ -1,16 +1,18 @@
 package main
 
 import (
+	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
 type user struct {
-	Username string
-	Password []byte
-	First    string
-	Last     string
+	Username     string
+	Password     []byte
+	First        string
+	Last         string
+	userBookings []*bookingInfoNode
 }
 
 var mapUsers = make(map[string]user)
@@ -18,10 +20,11 @@ var mapSessions = make(map[string]string)
 
 func init() {
 	bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
-	mapUsers["khai"] = user{"khai", bPassword, "khai", "fazil"}
-	mapUsers["joseph"] = user{"joseph", bPassword, "joseph", "seow"}
-	mapUsers["doug"] = user{"doug", bPassword, "doug", "choo"}
-	mapUsers["iza"] = user{"iza", bPassword, "iza", "zainuddin"}
+	mapUsers["khai"] = user{"khai", bPassword, "khai", "fazil", []*bookingInfoNode{}}
+	mapUsers["joseph"] = user{"joseph", bPassword, "joseph", "seow", []*bookingInfoNode{}}
+	mapUsers["doug"] = user{"doug", bPassword, "doug", "choo", []*bookingInfoNode{}}
+	mapUsers["iza"] = user{"iza", bPassword, "iza", "zainuddin", []*bookingInfoNode{}}
+	fmt.Println(mapUsers)
 }
 
 func getUser(r *http.Request) user {

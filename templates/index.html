@@ -7,18 +7,25 @@
 <body>
     <h1>TRIFECTA LIMOS</h1>
     {{if .First}}
-        <h2>Welcome {{.Username}}!</h2>
-        <a href="http://localhost:5221/logout">
-            <button>Logout</button>
-        </a>
+    <h2>Welcome {{.Username}}!</h2>
+    <ol>
+        <li>
+            <a href="http://localhost:5221/make_booking">
+                <button>Book a Limo</button>
+            </a>
+        </li>
+    </ol>
+    <a href="http://localhost:5221/logout">
+        <button>Logout</button>
+    </a>
     {{else}}
-        <h2>You are not logged in or do not have an account</h2>
-        <a href="http://localhost:5221/login" style="text-decoration: none;">
-            <button>Login</button>
-        </a>
-        <a href="http://localhost:5221/signup" style="text-decoration: none;">
-            <button>Signup</button>
-        </a>
+    <h2>You are not logged in or do not have an account</h2>
+    <a href="http://localhost:5221/login" style="text-decoration: none;">
+        <button>Login</button>
+    </a>
+    <a href="http://localhost:5221/signup" style="text-decoration: none;">
+        <button>Signup</button>
+    </a>
     {{end}}
 </body>
 </html>
