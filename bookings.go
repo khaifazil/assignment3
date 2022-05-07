@@ -79,10 +79,31 @@ func (b *LinkedList) makeNewBooking(car string, date string, bookingTime int, us
 
 	(*carArr)[d][t] = newBookingInfoNode
 
-	myUser := mapUsers[userName]
-	myUser.UserBookings = append(myUser.UserBookings, newBookingInfoNode)
-	myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
-	myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
-
 	return newBookingInfoNode, nil
+}
+
+func change(a []*BookingInfoNode, node *BookingInfoNode) []*BookingInfoNode {
+	a = append(a, node)
+	return a
+}
+
+func recursiveSeqSearchId(length int, start int, arr []*BookingInfoNode, target string) (*BookingInfoNode, int, error) {
+	if start > length-1 {
+		return nil, 0, errors.New("there are no bookings with that ID")
+	} else {
+
+		if target == arr[start].BookingId {
+			return arr[start], start, nil
+		} else {
+			return recursiveSeqSearchId(length, start+1, arr, target)
+		}
+	}
+}
+
+func searchId(arr []*BookingInfoNode, target string) (*BookingInfoNode, error) {
+	booking, _, err := recursiveSeqSearchId(len(arr), 0, arr, target)
+	if err != nil {
+		return nil, err
+	}
+	return booking, err
 }

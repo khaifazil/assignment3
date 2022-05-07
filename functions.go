@@ -145,15 +145,6 @@ func searchBookingByDate(arr []*BookingInfoNode, date string) ([]*BookingInfoNod
 	return lookForDupsDate(arr, n, date), nil
 }
 
-func recursiveSeqSearchId(length int, start int, arr []*BookingInfoNode, target string) (*BookingInfoNode, int, error) {
-	if start > length-1 {
-		return nil, 0, errors.New("there are no bookings with that ID")
-	} else {
-
-		if target == arr[start].BookingId {
-			return arr[start], start, nil
-		} else {
-			return recursiveSeqSearchId(length, start+1, arr, target)
-		}
-	}
+func add(x, y int) int {
+	return x + y
 }

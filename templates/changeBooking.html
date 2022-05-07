@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>New Booking</title>
+    <title>Edit Booking</title>
 </head>
 <body>
     <h1>Trifecta Limos</h1>
-    <h2>Make a New Booking</h2>
+    <h2>Edit Booking</h2>
+    <p><i>*Leave field empty if unchanged</i></p>
     <form method="POST">
         <table>
             <tr>
                 <td><label for="cars">Choose a car: </label></td>
-                <td><select name="cars" id="cars" required>
+                <td><select name="cars" id="cars">
                     <option value="none" selected hidden>Select Car</option>
                     <option value="Car1">Car1</option>
                     <option value="Car2">Car2</option>
@@ -22,11 +23,11 @@
             </tr>
             <tr>
                 <td><label for="date">Date: </label></td>
-                <td><input type="text" id="date" name="date" placeholder="dd/mm/yyyy" required></td>
+                <td><input type="text" id="date" name="date" placeholder="dd/mm/yyyy"></td>
             </tr>
             <tr>
                 <td><label for="time">Choose a Timeslot: </label></td>
-                <td><select name="bookingTime" id="time" required>
+                <td><select name="bookingTime" id="time">
                     <option value="0" selected hidden>Select Time</option>
                     <option value="100">0100 Hrs</option>
                     <option value="200">0200 Hrs</option>
@@ -57,22 +58,22 @@
             </tr>
             <tr>
                 <td><label for="pickUp">Pickup Address: </label></td>
-                <td><input type="text" id="pickUp" name="pickUp" required></td>
+                <td><input type="text" id="pickUp" name="pickUp"></td>
             </tr>
             <tr>
                 <td><label for="dropOff">Drop off Address: </label></td>
-                <td><input type="text" id="dropOff" name="dropOff" required></td>
+                <td><input type="text" id="dropOff" name="dropOff"></td>
             </tr>
             <tr>
                 <td><label for="contact">Contact no.: </label></td>
-                <td><input type="tel" id="contact" name="contact" required></td>
+                <td><input type="tel" id="contact" name="contact" value=""></td>
             </tr>
             <tr>
                 <td><label for="remarks">Remarks: </label></td>
                 <td><textarea id="remarks" name="remarks" cols="25"></textarea> </td>
             </tr>
             <tr>
-                <td colspan="2"><button type="submit">Make Booking</button></td>
+                <td colspan="2"><button type="submit">Confirm Changes</button></td>
             </tr>
         </table>
     </form>

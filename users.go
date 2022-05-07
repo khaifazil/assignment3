@@ -18,7 +18,7 @@ var mapUsers = make(map[string]user)
 var mapSessions = make(map[string]string)
 
 func init() {
-	bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
+	bPassword, _ := bcrypt.GenerateFromPassword([]byte("superpassword"), bcrypt.MinCost)
 	mapUsers["khai"] = user{"khai", bPassword, "khai", "fazil", []*BookingInfoNode{}}
 	mapUsers["joseph"] = user{"joseph", bPassword, "joseph", "seow", []*BookingInfoNode{}}
 	mapUsers["doug"] = user{"doug", bPassword, "doug", "choo", []*BookingInfoNode{}}
