@@ -314,49 +314,71 @@ func getChanges(w http.ResponseWriter, r *http.Request) { //TODO check if new ca
 		oldTime := convertTime(booking.BookingTime)
 
 		car := r.FormValue("cars")
-		if car != "none" {
-			booking.Car = car
-		} else {
-			car = booking.Car
-		}
 		date := r.FormValue("date")
-		if date != "" {
-			booking.Date = date
-		}
 		bookingTime, _ := strconv.Atoi(r.FormValue("bookingTime"))
-		if bookingTime != 0 {
-			booking.BookingTime = bookingTime
-		}
 		pickUp := r.FormValue("pickUp")
-		if pickUp != "" {
-			booking.PickUp = pickUp
-		}
 		dropOff := r.FormValue("dropOff")
-		if dropOff != "" {
-			booking.DropOff = dropOff
-		}
 		contact, _ := strconv.Atoi(r.FormValue("contact"))
-		if contact != 0 {
-			booking.ContactInfo = contact
-		}
 		remarks := r.FormValue("remarks")
-		if remarks != "" {
-			booking.Remarks = remarks
+
+		if car == "none" && date == "" && bookingTime == 0 {
+			if pickUp != "" {
+				booking.PickUp = pickUp
+			}
+			if dropOff != "" {
+				booking.DropOff = dropOff
+			}
+			if contact != 0 {
+				booking.ContactInfo = contact
+			}
+			if remarks != "" {
+				booking.Remarks = remarks
+			}
+
+			http.Redirect(w, r, "/print_changed_booking", http.StatusSeeOther)
+			return
+		}
+		if car == "none" {
+			car = booking.Car
 		}
 		//collect new car data
 		newCarArr := getCarArr(car)
 		newDate := convertDate(date)
 		newTime := convertTime(bookingTime)
-		//if car, date or time is changed, booking is moved and old booking is deleted
-		if oldCarArr[oldDate][oldTime] != newCarArr[newDate][newTime] {
-			newCarArr[newDate][newTime] = oldCarArr[oldDate][oldTime]
-			oldCarArr[oldDate][oldTime] = nil
+
+		if newCarArr[newDate][newTime] != nil { //check for empty timeslot
+			err := errors.New("there is already a booking at that time and date")
+			fmt.Fprintf(w, "Error: %v , go back to select a new slot", err)
+			return
+		}
+		booking.Car = car
+		if date != "" {
+			booking.Date = date
+		}
+		if bookingTime != 0 {
+			booking.BookingTime = bookingTime
+		}
+		if pickUp != "" {
+			booking.PickUp = pickUp
+		}
+		if dropOff != "" {
+			booking.DropOff = dropOff
+		}
+		if contact != 0 {
+			booking.ContactInfo = contact
+		}
+		if remarks != "" {
+			booking.Remarks = remarks
 		}
 
+		//if car, date or time is changed, booking is moved and old booking is deleted
+		newCarArr[newDate][newTime] = oldCarArr[oldDate][oldTime]
+		oldCarArr[oldDate][oldTime] = nil
+		//sort userBookings slice
 		myUser := mapUsers[getUser(r).Username]
 		myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
 		myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
-		//mapUsers[userName] = myUser
+		mapUsers[getUser(r).Username] = myUser
 		http.Redirect(w, r, "/print_changed_booking", http.StatusSeeOther)
 	}
 
