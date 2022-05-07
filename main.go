@@ -180,6 +180,12 @@ func deleteUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		username := r.FormValue("username")
+		myUser := mapUsers[username]
+		for _, v := range myUser.UserBookings {
+			deleteFromCarsArr(v)
+			bookings.deleteBookingNode(v)
+		}
+
 		delete(mapUsers, username)
 	}
 	err := tpl.ExecuteTemplate(w, "deleteUsers.html", mapUsers)

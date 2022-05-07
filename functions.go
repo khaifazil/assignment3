@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"time"
 )
 
@@ -26,12 +25,12 @@ func convertTime(time int) int {
 	return time / 100
 }
 
-func selectSort(arr []*BookingInfoNode, n int) {
-	for last := n - 1; last >= 1; last-- {
-		largest := indexOfLargest(arr, last+1)
-		swapPtr(&arr[largest], &arr[last])
-	}
-}
+//func selectSort(arr []*BookingInfoNode, n int) {
+//	for last := n - 1; last >= 1; last-- {
+//		largest := indexOfLargest(arr, last+1)
+//		swapPtr(&arr[largest], &arr[last])
+//	}
+//}
 
 func indexOfLargest(arr []*BookingInfoNode, n int) int {
 	largestIndex := 0
@@ -89,15 +88,15 @@ func sortBookingsByTime(arr []*BookingInfoNode, n int) []*BookingInfoNode {
 // 	ptr[index1][index2] = address
 // }
 
-func checkDate(date string) error {
-	parsedDate, err := time.Parse(timeFormat, date)
-	if err != nil {
-		return err
-	} else if parsedDate.Before(time.Now()) {
-		return errors.New("date given has passed")
-	}
-	return nil
-}
+//func checkDate(date string) error {
+//	parsedDate, err := time.Parse(timeFormat, date)
+//	if err != nil {
+//		return err
+//	} else if parsedDate.Before(time.Now()) {
+//		return errors.New("date given has passed")
+//	}
+//	return nil
+//}
 
 func binarySearchDate(arr []*BookingInfoNode, target string) int {
 	first := 0
@@ -119,7 +118,7 @@ func binarySearchDate(arr []*BookingInfoNode, target string) int {
 }
 
 func lookForDupsDate(arr []*BookingInfoNode, n int, target string) []*BookingInfoNode {
-	temp := []*BookingInfoNode{}
+	var temp []*BookingInfoNode
 	for i := n; i >= 0; i-- {
 		if target != arr[i].Date {
 			break
@@ -137,13 +136,13 @@ func lookForDupsDate(arr []*BookingInfoNode, n int, target string) []*BookingInf
 	return temp
 }
 
-func searchBookingByDate(arr []*BookingInfoNode, date string) ([]*BookingInfoNode, error) {
-	n := binarySearchDate(arr, date)
-	if n == -1 {
-		return nil, errors.New("no bookings found at that date")
-	}
-	return lookForDupsDate(arr, n, date), nil
-}
+//func searchBookingByDate(arr []*BookingInfoNode, date string) ([]*BookingInfoNode, error) {
+//	n := binarySearchDate(arr, date)
+//	if n == -1 {
+//		return nil, errors.New("no bookings found at that date")
+//	}
+//	return lookForDupsDate(arr, n, date), nil
+//}
 
 func add(x, y int) int {
 	return x + y
