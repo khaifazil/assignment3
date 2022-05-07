@@ -282,7 +282,7 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 		var err error
 		//get booking number
 		bookingId := r.FormValue("bookingId")
-		//iterate thru slice to get bookingNode
+		//iterate through slice to get bookingNode
 		myUser := getUser(r)
 		booking, _, err = recursiveSeqSearchId(len(myUser.UserBookings), 0, myUser.UserBookings, bookingId)
 		fmt.Println(booking)
@@ -300,7 +300,7 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChanges(w http.ResponseWriter, r *http.Request) {
+func getChanges(w http.ResponseWriter, r *http.Request) { //TODO check if new car array is nil
 	//myUser := getUser(r)
 	if getUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
@@ -308,49 +308,54 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
+		//collect old car data
+		oldCarArr := getCarArr(booking.Car)
+		oldDate := convertDate(booking.Date)
+		oldTime := convertTime(booking.BookingTime)
+
 		car := r.FormValue("cars")
-		if car == "none" {
+		if car != "none" {
+			booking.Car = car
+		} else {
 			car = booking.Car
 		}
 		date := r.FormValue("date")
-		if date == "" {
-			date = booking.Date
+		if date != "" {
+			booking.Date = date
 		}
 		bookingTime, _ := strconv.Atoi(r.FormValue("bookingTime"))
-		if bookingTime == 0 {
-			bookingTime = booking.BookingTime
+		if bookingTime != 0 {
+			booking.BookingTime = bookingTime
 		}
-		userName := getUser(r).Username
 		pickUp := r.FormValue("pickUp")
-		if pickUp == "" {
-			pickUp = booking.PickUp
+		if pickUp != "" {
+			booking.PickUp = pickUp
 		}
 		dropOff := r.FormValue("dropOff")
-		if dropOff == "" {
-			dropOff = booking.DropOff
+		if dropOff != "" {
+			booking.DropOff = dropOff
 		}
 		contact, _ := strconv.Atoi(r.FormValue("contact"))
-		if contact == 0 {
-			contact = booking.ContactInfo
+		if contact != 0 {
+			booking.ContactInfo = contact
 		}
 		remarks := r.FormValue("remarks")
-		if remarks == "" {
-			remarks = booking.Remarks
+		if remarks != "" {
+			booking.Remarks = remarks
+		}
+		//collect new car data
+		newCarArr := getCarArr(car)
+		newDate := convertDate(date)
+		newTime := convertTime(bookingTime)
+		//if car, date or time is changed, booking is moved and old booking is deleted
+		if oldCarArr[oldDate][oldTime] != newCarArr[newDate][newTime] {
+			newCarArr[newDate][newTime] = oldCarArr[oldDate][oldTime]
+			oldCarArr[oldDate][oldTime] = nil
 		}
 
-		bookingId := booking.BookingId
-		next := booking.Next
-		prev := booking.Prev
-
-		//oldCarArr := getCarArr(car)
-		//oldDate := convertDate(booking.Date)
-		//oldTime := convertTime(booking.BookingTime)
-
-		booking = &BookingInfoNode{car, date, bookingTime, userName, pickUp, dropOff, contact, remarks, bookingId, next, prev}
-
-		//myUser := mapUsers[userName]
-		//myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
-		//myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
+		myUser := mapUsers[getUser(r).Username]
+		myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
+		myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
 		//mapUsers[userName] = myUser
 		http.Redirect(w, r, "/print_changed_booking", http.StatusSeeOther)
 	}
