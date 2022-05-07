@@ -36,3 +36,10 @@ func getCarArr(car string) *[365][24]*BookingInfoNode {
 		return nil
 	}
 }
+
+func deleteFromCarsArr(ptr *BookingInfoNode) {
+	t := convertTime(ptr.BookingTime)
+	d := convertDate(ptr.Date)
+	carArr := getCarArr(ptr.Car)
+	(*carArr)[d][t] = nil
+}

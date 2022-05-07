@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/exp/slices"
 	"net/http"
 )
 
@@ -87,4 +89,14 @@ func setSessionIDCookie(w http.ResponseWriter, username string) {
 	http.SetCookie(w, sessionCookie)
 	//mapSession
 	mapSessions[sessionCookie.Value] = username
+}
+
+func deleteBookingUserArr(userNode user, bookingNode *BookingInfoNode) error {
+	if index := slices.Index(userNode.UserBookings, bookingNode); index == -1 {
+		return errors.New("booking not found")
+	} else {
+		userNode.UserBookings = append(userNode.UserBookings[:index], userNode.UserBookings[index+1:]...)
+		mapUsers[userNode.Username] = userNode
+	}
+	return nil
 }

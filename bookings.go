@@ -107,3 +107,42 @@ func searchId(arr []*BookingInfoNode, target string) (*BookingInfoNode, error) {
 	}
 	return booking, err
 }
+
+func (b *LinkedList) deleteBookingNode(ptr *BookingInfoNode) error {
+	if b.Size == 0 {
+		return errors.New("linked list is empty")
+	}
+	if b.Size == 1 {
+		b.Head = nil
+		b.Tail = nil
+	}
+	if b.Size == 2 {
+		if b.Head == ptr {
+			b.Head = b.Tail
+			b.Tail.Prev = nil
+			ptr.Next = nil
+		}
+		b.Tail = b.Head
+		b.Head.Next = nil
+		ptr.Prev = nil
+	}
+	if b.Size > 2 {
+		if b.Head == ptr {
+			b.Head = b.Head.Next
+			b.Head.Prev = nil
+			ptr.Next = nil
+		} else if b.Tail == ptr {
+			b.Tail = ptr.Prev
+			b.Tail.Next = nil
+			ptr.Prev = nil
+		} else {
+			ptr.Next.Prev = ptr.Prev
+			ptr.Prev.Next = ptr.Next
+			ptr.Next = nil
+			ptr.Prev = nil
+		}
+	}
+	b.Size--
+
+	return nil
+}

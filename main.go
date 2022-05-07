@@ -41,6 +41,8 @@ func main() {
 	http.HandleFunc("/change_booking_page", changeBookingPage)
 	http.HandleFunc("/get_changes", getChanges)
 	http.HandleFunc("/print_changed_booking", printChangedBooking)
+	http.HandleFunc("/delete_booking_page", deleteBookingPage)
+	http.HandleFunc("/delete_confirmed", deleteBooking)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe("localhost:5221", nil)
 	if err != nil {
@@ -284,16 +286,13 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 		bookingId := r.FormValue("bookingId")
 		//iterate through slice to get bookingNode
 		myUser := getUser(r)
-		booking, _, err = recursiveSeqSearchId(len(myUser.UserBookings), 0, myUser.UserBookings, bookingId)
-		fmt.Println(booking)
+		booking, err = searchId(myUser.UserBookings, bookingId)
+		//fmt.Println(booking)
 		if err != nil {
 			fmt.Fprintf(w, "there are no bookings with that Booking ID, go back to re-enter ID")
 			return
 		}
 	}
-	//collect data to change
-	//update node
-	//print node
 	err := tpl.ExecuteTemplate(w, "changeBookingPage.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
@@ -380,6 +379,7 @@ func getChanges(w http.ResponseWriter, r *http.Request) { //TODO check if new ca
 		myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
 		mapUsers[getUser(r).Username] = myUser
 		http.Redirect(w, r, "/print_changed_booking", http.StatusSeeOther)
+		return
 	}
 
 	err := tpl.ExecuteTemplate(w, "changeBooking.html", booking)
@@ -398,4 +398,51 @@ func printChangedBooking(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("error executing template"))
 	}
 	booking = nil
+}
+
+func deleteBookingPage(w http.ResponseWriter, r *http.Request) {
+	//validate login
+	if getUser(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	if r.Method == http.MethodPost {
+		var err error
+		//get booking number
+		bookingId := r.FormValue("bookingId")
+		//iterate through slice to get bookingNode
+		myUser := getUser(r)
+		booking, err = searchId(myUser.UserBookings, bookingId)
+		//fmt.Println(booking)
+		if err != nil {
+			fmt.Fprintf(w, "there are no bookings with that Booking ID, go back to re-enter ID")
+			return
+		}
+	}
+	err := tpl.ExecuteTemplate(w, "deleteBookingPage.html", booking)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func deleteBooking(w http.ResponseWriter, r *http.Request) {
+	if getUser(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+
+	myUser := getUser(r)
+	deleteFromCarsArr(booking)
+	if err := deleteBookingUserArr(myUser, booking); err != nil {
+		_ = fmt.Errorf("error: %s", err)
+	}
+	if err := bookings.deleteBookingNode(booking); err != nil {
+		_ = fmt.Errorf("error: %s", err)
+	}
+	booking = nil
+
+	err := tpl.ExecuteTemplate(w, "deleteConfirmed.html", nil)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
 }
