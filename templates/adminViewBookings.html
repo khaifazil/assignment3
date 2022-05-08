@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View & Delete Bookings</title>
+</head>
+<body>
+  <h1>TRIFECTA LIMOS</h1>
+  <h2>View & Delete Bookings</h2>
+
+  {{range $index, $element := .}}
+  <h3>Booking No.{{ add $index 1}}</h3>
+  <table border="1">
+    <tr>
+      <td>
+        <p>Car: </p>
+      </td>
+      <td>
+        <p>{{$element.Car}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Date: </p>
+      </td>
+      <td>
+        <p>{{$element.Date}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Booking Time: </p>
+      </td>
+      <td>
+        <p>{{$element.BookingTime}} Hrs</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>UserName: </p>
+      </td>
+      <td>
+        <p>{{$element.UserName}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Pickup Address: </p>
+      </td>
+      <td>
+        <p>{{$element.PickUp}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Drop Off Address: </p>
+      </td>
+      <td>
+        <p>{{$element.DropOff}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Contact: </p>
+      </td>
+      <td>
+        <p>{{$element.ContactInfo}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Remarks: </p>
+      </td>
+      <td>
+        <p>{{$element.Remarks}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Booking ID: </p>
+      </td>
+      <td>
+        <p>{{$element.BookingId}}</p>
+      </td>
+    </tr>
+  </table>
+  <form method="POST">
+    <button value="{{$element.BookingId}}" name="bookingId">Delete Booking</button>
+  </form>
+  {{else}}
+  <p>There are no Bookings!</p>
+  {{end}}
+  <a href="http://localhost:5221/admin_index">
+    <button>Main Menu</button>
+  </a>
+</body>
+</html>

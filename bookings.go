@@ -146,3 +146,17 @@ func (b *LinkedList) deleteBookingNode(ptr *BookingInfoNode) error {
 
 	return nil
 }
+
+func (b *LinkedList) appendAllToSlice() ([]*BookingInfoNode, error) {
+	if b.Head == nil {
+		return nil, errors.New("there are no bookings")
+	}
+
+	currentNode := b.Head
+	var temp []*BookingInfoNode
+	temp = append(temp, currentNode)
+	for currentNode.Next != nil {
+		temp = append(temp, currentNode)
+	}
+	return temp, nil
+}

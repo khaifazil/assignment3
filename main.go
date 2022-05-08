@@ -33,6 +33,8 @@ func main() {
 	http.HandleFunc("/admin_index", adminIndex)
 	http.HandleFunc("/admin_delete_users", deleteUsers)
 	http.HandleFunc("/admin_delete_sessions", deleteSessions)
+	http.HandleFunc("/admin_view_delete_bookings", adminViewDeleteBookings)
+	http.HandleFunc("/admin_delete_booking_confirmed", adminDeleteBookingConfirmed)
 	http.HandleFunc("/new_booking", newBookingPage)
 	http.HandleFunc("/booking_confirmed", bookingConfirmed)
 	http.HandleFunc("/view_all_bookings", viewAllBookings)

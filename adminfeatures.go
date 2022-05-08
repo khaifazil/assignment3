@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -76,6 +77,48 @@ func deleteSessions(w http.ResponseWriter, r *http.Request) {
 		delete(mapSessions, sessionId)
 	}
 	err := tpl.ExecuteTemplate(w, "deleteSessions.html", mapSessions)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
+	if getAdmin(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	toDisplay, _ := bookings.appendAllToSlice()
+
+	if r.Method == http.MethodPost {
+		id := r.FormValue("bookingId")
+		//fmt.Println(id)
+		if toDelete, err := searchId(toDisplay, id); err != nil {
+			fmt.Fprintf(w, "searchId error: %v", err)
+		} else {
+			myUser := mapUsers[toDelete.UserName]
+			deleteFromCarsArr(toDelete)
+			if err := deleteBookingUserArr(myUser, toDelete); err != nil {
+				fmt.Errorf("error: %s", err)
+			}
+			if err := bookings.deleteBookingNode(toDelete); err != nil {
+				fmt.Errorf("error: %s", err)
+			}
+			http.Redirect(w, r, "/admin_delete_booking_confirmed", http.StatusSeeOther)
+			return
+		}
+	}
+	err := tpl.ExecuteTemplate(w, "adminViewBookings.html", toDisplay)
+	if err != nil {
+		panic(errors.New("error executing template"))
+	}
+}
+
+func adminDeleteBookingConfirmed(w http.ResponseWriter, r *http.Request) {
+	if getAdmin(r).Username == "" {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	err := tpl.ExecuteTemplate(w, "adminDeleteConfirmed.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
