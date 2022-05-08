@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
-	"html/template"
 	"net/http"
+	"sync"
+	"text/template"
 )
 
 var tpl *template.Template
 var booking *BookingInfoNode
+var wg sync.WaitGroup
 
 var funcMap = template.FuncMap{
 	"add": add,
@@ -79,7 +81,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "login.html", nil)
+	err := tpl.ExecuteTemplate(w, "login.gohtml", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -101,7 +103,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//execute template
-	err := tpl.ExecuteTemplate(w, "signup.html", nil)
+	err := tpl.ExecuteTemplate(w, "signup.gohtml", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}

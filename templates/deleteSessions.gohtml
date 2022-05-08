@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Sessions</title>
+</head>
+<body>
+<h1>TRIFECTA LIMOS</h1>
+  <h2>Delete Sessions</h2>
+  <form method="POST">
+      <table>
+          {{range $key, $val := .}}
+          <tr>
+              <td>Username: {{$val}}</td>
+              <td> | sessionId: {{$key}}</td>
+              <td><button value="{{$key}}" name="sessionId">Delete</button></td>
+          </tr>
+          {{end}}
+      </table>
+  </form>
+    <a href="http://localhost:5221/admin_index"><button>Admin Menu</button></a>
+</body>
+</html>

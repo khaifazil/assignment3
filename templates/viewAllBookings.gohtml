@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View All Bookings</title>
+</head>
+<body>
+  <h1>TRIFECTA LIMOS</h1>
+  <h2>View Bookings</h2>
+
+  {{range $index, $element := .}}
+  <h3>Booking No.{{ add $index 1}}</h3>
+  <table border="1">
+    <tr>
+      <td>
+        <p>Car: </p>
+      </td>
+      <td>
+        <p>{{$element.Car}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Date: </p>
+      </td>
+      <td>
+        <p>{{$element.Date}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Booking Time: </p>
+      </td>
+      <td>
+        <p>{{$element.BookingTime}} Hrs</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>UserName: </p>
+      </td>
+      <td>
+        <p>{{$element.UserName}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Pickup Address: </p>
+      </td>
+      <td>
+        <p>{{$element.PickUp}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Drop Off Address: </p>
+      </td>
+      <td>
+        <p>{{$element.DropOff}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Contact: </p>
+      </td>
+      <td>
+        <p>{{$element.ContactInfo}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Remarks: </p>
+      </td>
+      <td>
+        <p>{{$element.Remarks}}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Booking ID: </p>
+      </td>
+      <td>
+        <p>{{$element.BookingId}}</p>
+      </td>
+    </tr>
+  </table>
+  {{else}}
+  <label for="makeBooking">You have no bookings!</label>
+  <a href="http://localhost:5221/new_booking">
+    <button id="makeBooking">Make A Booking</button>
+  </a> <br>
+  {{end}}
+  <a href="http://localhost:5221/">
+    <button>Main Menu</button>
+  </a>
+</body>
+</html>
