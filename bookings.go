@@ -153,10 +153,12 @@ func (b *LinkedList) appendAllToSlice() ([]*BookingInfoNode, error) {
 	}
 
 	currentNode := b.Head
-	var temp []*BookingInfoNode
-	temp = append(temp, currentNode)
-	for currentNode.Next != nil {
+	var temp = make([]*BookingInfoNode, 0, 5)
+	for i := 1; i <= b.Size; i++ {
 		temp = append(temp, currentNode)
+		if currentNode.Next != nil {
+			currentNode = currentNode.Next
+		}
 	}
 	return temp, nil
 }

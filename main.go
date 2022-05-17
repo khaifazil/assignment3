@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
+	"html/template"
 	"net/http"
 	"sync"
-	"text/template"
 )
 
 var tpl *template.Template
@@ -27,26 +28,31 @@ func main() {
 			fmt.Println("Recovered. Error:\n", r)
 		}
 	}()
-	http.HandleFunc("/", index)
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/signup", signup)
-	http.HandleFunc("/logout", logout)
-	http.HandleFunc("/admin_login", adminLogin)
-	http.HandleFunc("/admin_index", adminIndex)
-	http.HandleFunc("/admin_delete_users", deleteUsers)
-	http.HandleFunc("/admin_delete_sessions", deleteSessions)
-	http.HandleFunc("/admin_view_delete_bookings", adminViewDeleteBookings)
-	http.HandleFunc("/admin_delete_booking_confirmed", adminDeleteBookingConfirmed)
-	http.HandleFunc("/new_booking", newBookingPage)
-	http.HandleFunc("/booking_confirmed", bookingConfirmed)
-	http.HandleFunc("/view_all_bookings", viewAllBookings)
-	http.HandleFunc("/change_booking_page", changeBookingPage)
-	http.HandleFunc("/get_changes", getChanges)
-	http.HandleFunc("/print_changed_booking", printChangedBooking)
-	http.HandleFunc("/delete_booking_page", deleteBookingPage)
-	http.HandleFunc("/delete_confirmed", deleteBooking)
-	http.Handle("/favicon.ico", http.NotFoundHandler())
-	err := http.ListenAndServe("localhost:5221", nil)
+
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", index)
+	router.HandleFunc("/login", login)
+	router.HandleFunc("/logout", logout)
+	router.HandleFunc("/signup", signup)
+	router.HandleFunc("/admin_login", adminLogin)
+	router.HandleFunc("/admin_index", adminIndex)
+	router.HandleFunc("/admin_delete_users", deleteUsers)
+	router.HandleFunc("/admin_delete_sessions", deleteSessions)
+	router.HandleFunc("/admin_view_delete_bookings", adminViewDeleteBookings)
+	router.HandleFunc("/admin_delete_booking_confirmed", adminDeleteBookingConfirmed)
+	router.HandleFunc("/new_booking", newBookingPage)
+	router.HandleFunc("/booking_confirmed", bookingConfirmed)
+	router.HandleFunc("/view_all_bookings", viewAllBookings)
+	router.HandleFunc("/change_booking_page", changeBookingPage)
+	router.HandleFunc("/get_changes", getChanges)
+	router.HandleFunc("/print_changed_booking", printChangedBooking)
+	router.HandleFunc("/delete_booking_page", deleteBookingPage)
+	router.HandleFunc("/delete_confirmed", deleteBooking)
+	router.Handle("/favicon.ico", http.NotFoundHandler())
+
+	err := http.ListenAndServeTLS(":5221", "ssl/cert.pem", "ssl/key.pem", router)
+	//err := http.ListenAndServe("localhost:5221", nil)
 	if err != nil {
 		panic(errors.New("error starting server"))
 	}
@@ -68,20 +74,20 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 		myUser, ok := mapUsers[username]
 		if !ok {
-			http.Error(w, "Username and/or password do not match", http.StatusUnauthorized)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
 			return
 		}
 		err := bcrypt.CompareHashAndPassword(myUser.Password, []byte(password))
 		if err != nil {
-			http.Error(w, "Username and/or password do not match", http.StatusUnauthorized)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
 			return
 		}
 
-		setSessionIDCookie(w, username)
+		setSessionIDCookie(w, username) //TODO set cookie expiry
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "login.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "login.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -103,7 +109,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//execute template
-	err := tpl.ExecuteTemplate(w, "signup.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "signup.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}

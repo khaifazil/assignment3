@@ -10,35 +10,35 @@
     <h2>Welcome {{.Username}}!</h2>
     <ol>
         <li>
-            <a href="http://localhost:5221/new_booking">
+            <a href="/new_booking">
                 <button>Book a Car</button>
             </a>
         </li>
         <li>
-            <a href="http://localhost:5221/view_all_bookings">
+            <a href="/view_all_bookings">
                 <button>View All Bookings</button>
             </a>
         </li>
         <li>
-            <a href="http://localhost:5221/change_booking_page">
+            <a href="/change_booking_page">
                 <button>Change Booking</button>
             </a>
         </li>
         <li>
-            <a href="http://localhost:5221/delete_booking_page">
+            <a href="/delete_booking_page">
                 <button>Delete Booking</button>
             </a>
         </li>
     </ol>
-    <a href="http://localhost:5221/logout">
+    <a href="/logout">
         <button>Logout</button>
     </a>
     {{else}}
     <h2>You are not logged in or do not have an account</h2>
-    <a href="http://localhost:5221/login" style="text-decoration: none;">
+    <a href="/login" style="text-decoration: none;">
         <button>Login</button>
     </a>
-    <a href="http://localhost:5221/signup" style="text-decoration: none;">
+    <a href="/signup" style="text-decoration: none;">
         <button>Signup</button>
     </a>
     {{end}}

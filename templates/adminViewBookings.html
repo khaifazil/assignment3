@@ -8,7 +8,7 @@
   <h1>TRIFECTA LIMOS</h1>
   <h2>View & Delete Bookings</h2>
 
-  {{range $index, $element := .}}
+  {{range $index, $element := . }}
   <h3>Booking No.{{ add $index 1}}</h3>
   <table border="1">
     <tr>
@@ -90,7 +90,7 @@
   {{else}}
   <p>There are no Bookings!</p>
   {{end}}
-  <a href="http://localhost:5221/admin_index">
+  <a href="/admin_index">
     <button>Main Menu</button>
   </a>
 </body>

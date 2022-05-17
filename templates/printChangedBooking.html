@@ -2,17 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Change Booking</title>
+    <title>Booking Changed</title>
 </head>
 <body>
     <h1>TRIFECTA LIMOS</h1>
-    <h2>Change Booking Details</h2>
-    <form method="POST">
-        <label for="bookingId">Enter booking ID:</label>
-        <input type="text" id="bookingId" name="bookingId" />
-        <button type="submit">Submit</button>
-    </form>
-    {{if . }}
+    <h2>Booking Changed!</h2>
     <table border="1">
         <tr>
             <td>
@@ -87,10 +81,8 @@
             </td>
         </tr>
     </table>
-    <label>Confirm booking to change: </label>
-    <a href="http://localhost:5221/get_changes">
-        <button>Confirm</button>
+    <a href="/">
+        <button>Main Menu</button>
     </a>
-    {{end}}
 </body>
 </html>

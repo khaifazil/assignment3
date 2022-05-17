@@ -9,7 +9,7 @@ import (
 
 func index(w http.ResponseWriter, r *http.Request) {
 	currentUser := getUser(r)
-	err := tpl.ExecuteTemplate(w, "index.gohtml", currentUser)
+	err := tpl.ExecuteTemplate(w, "index.html", currentUser)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -55,7 +55,7 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/booking_confirmed", http.StatusSeeOther)
 		return
 	}
-	err = tpl.ExecuteTemplate(w, "newBooking.gohtml", nil)
+	err = tpl.ExecuteTemplate(w, "newBooking.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -66,7 +66,7 @@ func bookingConfirmed(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "bookingConfirmed.gohtml", booking)
+	err := tpl.ExecuteTemplate(w, "bookingConfirmed.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -80,7 +80,7 @@ func viewAllBookings(w http.ResponseWriter, r *http.Request) {
 	}
 	userBookings := getUser(r).UserBookings
 
-	err := tpl.ExecuteTemplate(w, "viewAllBookings.gohtml", userBookings)
+	err := tpl.ExecuteTemplate(w, "viewAllBookings.html", userBookings)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -105,7 +105,7 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err := tpl.ExecuteTemplate(w, "changeBookingPage.gohtml", booking)
+	err := tpl.ExecuteTemplate(w, "changeBookingPage.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -194,7 +194,7 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := tpl.ExecuteTemplate(w, "changeBooking.gohtml", booking)
+	err := tpl.ExecuteTemplate(w, "changeBooking.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -205,7 +205,7 @@ func printChangedBooking(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "printChangedBooking.gohtml", booking)
+	err := tpl.ExecuteTemplate(w, "printChangedBooking.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -231,7 +231,7 @@ func deleteBookingPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err := tpl.ExecuteTemplate(w, "deleteBookingPage.gohtml", booking)
+	err := tpl.ExecuteTemplate(w, "deleteBookingPage.html", booking)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -253,7 +253,7 @@ func deleteBooking(w http.ResponseWriter, r *http.Request) {
 	}
 	booking = nil
 
-	err := tpl.ExecuteTemplate(w, "deleteConfirmed.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "deleteConfirmed.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}

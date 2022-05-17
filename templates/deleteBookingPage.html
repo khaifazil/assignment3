@@ -2,11 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Booking Confirmed</title>
+    <title>Delete Booking</title>
 </head>
 <body>
     <h1>TRIFECTA LIMOS</h1>
-    <h2>Booking Confirmed!</h2>
+    <h2>Delete Booking</h2>
+    <form method="POST">
+        <label for="bookingId">Enter booking ID:</label>
+        <input type="text" id="bookingId" name="bookingId" />
+        <button type="submit">Submit</button>
+    </form>
+    {{if . }}
     <table border="1">
         <tr>
             <td>
@@ -81,8 +87,10 @@
             </td>
         </tr>
     </table>
-    <a href="http://localhost:5221/">
-        <button>Main Menu</button>
+    <label>Confirm booking to delete: </label>
+    <a href="/delete_confirmed">
+        <button>Confirm</button>
     </a>
+    {{end}}
 </body>
 </html>

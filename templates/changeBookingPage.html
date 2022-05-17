@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Delete Booking</title>
+    <title>Change Booking</title>
 </head>
 <body>
     <h1>TRIFECTA LIMOS</h1>
-    <h2>Delete Booking</h2>
+    <h2>Change Booking Details</h2>
     <form method="POST">
         <label for="bookingId">Enter booking ID:</label>
         <input type="text" id="bookingId" name="bookingId" />
@@ -87,8 +87,8 @@
             </td>
         </tr>
     </table>
-    <label>Confirm booking to delete: </label>
-    <a href="http://localhost:5221/delete_confirmed">
+    <label>Confirm booking to change: </label>
+    <a href="/get_changes">
         <button>Confirm</button>
     </a>
     {{end}}

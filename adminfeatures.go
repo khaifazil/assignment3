@@ -32,7 +32,7 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/admin_index", http.StatusSeeOther)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "adminLogin.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "adminLogin.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -40,7 +40,7 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 
 func adminIndex(w http.ResponseWriter, r *http.Request) {
 	currentAdmin := getAdmin(r)
-	err := tpl.ExecuteTemplate(w, "adminIndex.gohtml", currentAdmin)
+	err := tpl.ExecuteTemplate(w, "adminIndex.html", currentAdmin)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -61,7 +61,7 @@ func deleteUsers(w http.ResponseWriter, r *http.Request) {
 
 		delete(mapUsers, username)
 	}
-	err := tpl.ExecuteTemplate(w, "deleteUsers.gohtml", mapUsers)
+	err := tpl.ExecuteTemplate(w, "deleteUsers.html", mapUsers)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -76,7 +76,7 @@ func deleteSessions(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.FormValue("sessionId")
 		delete(mapSessions, sessionId)
 	}
-	err := tpl.ExecuteTemplate(w, "deleteSessions.gohtml", mapSessions)
+	err := tpl.ExecuteTemplate(w, "deleteSessions.html", mapSessions)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -111,7 +111,7 @@ func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err := tpl.ExecuteTemplate(w, "adminViewBookings.gohtml", toDisplay)
+	err := tpl.ExecuteTemplate(w, "adminViewBookings.html", toDisplay)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
@@ -122,7 +122,7 @@ func adminDeleteBookingConfirmed(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
-	err := tpl.ExecuteTemplate(w, "adminDeleteConfirmed.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "adminDeleteConfirmed.html", nil)
 	if err != nil {
 		panic(errors.New("error executing template"))
 	}
