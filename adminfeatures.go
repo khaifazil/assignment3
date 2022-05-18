@@ -17,24 +17,43 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if !IsAlphabetic(username) {
+			err := errors.New("username includes invalid characters")
+			AdminLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
+		if !IsAlphanumeric(password) {
+			err := errors.New("password includes invalid characters")
+			AdminLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
 		myAdminUser, ok := mapAdmins[username]
 		if !ok {
+			err := errors.New("username not found")
+			AdminLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
 			http.Error(w, "Username and/or password do not match", http.StatusUnauthorized)
 			return
 		}
 		err := bcrypt.CompareHashAndPassword(myAdminUser.Password, []byte(password))
 		if err != nil {
+			err := errors.New("wrong password")
+			AdminLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
 			http.Error(w, "Username and/or password do not match", http.StatusUnauthorized)
 			return
 		}
 
 		setSessionIDCookie(w, username)
+		AdminLogger.Printf("LOGIN SUCCESSFUL: %s logged in", username)
 		http.Redirect(w, r, "/admin_index", http.StatusSeeOther)
 		return
 	}
 	err := tpl.ExecuteTemplate(w, "adminLogin.html", nil)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -42,7 +61,7 @@ func adminIndex(w http.ResponseWriter, r *http.Request) {
 	currentAdmin := getAdmin(r)
 	err := tpl.ExecuteTemplate(w, "adminIndex.html", currentAdmin)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -56,14 +75,17 @@ func deleteUsers(w http.ResponseWriter, r *http.Request) {
 		myUser := mapUsers[username]
 		for _, v := range myUser.UserBookings {
 			deleteFromCarsArr(v)
-			bookings.deleteBookingNode(v)
+			err := bookings.deleteBookingNode(v)
+			if err != nil {
+				ErrorLogger.Println(err)
+			}
 		}
 
 		delete(mapUsers, username)
 	}
 	err := tpl.ExecuteTemplate(w, "deleteUsers.html", mapUsers)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -78,7 +100,7 @@ func deleteSessions(w http.ResponseWriter, r *http.Request) {
 	}
 	err := tpl.ExecuteTemplate(w, "deleteSessions.html", mapSessions)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -94,16 +116,20 @@ func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 		id := r.FormValue("bookingId")
 		//fmt.Println(id)
 		if toDelete, err := searchId(toDisplay, id); err != nil {
-			fmt.Fprintf(w, "searchId error: %v", err)
+			ErrorLogger.Printf("searchId error: %v", err)
+			_, err := fmt.Fprintf(w, "searchId error: %v", err)
+			if err != nil {
+				ErrorLogger.Println(err)
+			}
 		} else {
 			myUser := mapUsers[toDelete.UserName]
 			wg.Add(1)
 			go deleteFromCarsArr(toDelete)
 			if err := deleteBookingUserArr(myUser, toDelete); err != nil {
-				fmt.Errorf("error: %s", err)
+				ErrorLogger.Println(err)
 			}
 			if err := bookings.deleteBookingNode(toDelete); err != nil {
-				fmt.Errorf("error: %s", err)
+				ErrorLogger.Println(err)
 			}
 			wg.Done()
 			wg.Wait()
@@ -113,7 +139,7 @@ func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 	}
 	err := tpl.ExecuteTemplate(w, "adminViewBookings.html", toDisplay)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -124,6 +150,6 @@ func adminDeleteBookingConfirmed(w http.ResponseWriter, r *http.Request) {
 	}
 	err := tpl.ExecuteTemplate(w, "adminDeleteConfirmed.html", nil)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }

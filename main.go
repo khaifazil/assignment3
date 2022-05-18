@@ -19,9 +19,11 @@ var wg sync.WaitGroup
 
 var errLog *os.File
 var userLog *os.File
+var adminLog *os.File
 
 var ErrorLogger *log.Logger
 var UserLogger *log.Logger
+var AdminLogger *log.Logger
 
 var funcMap = template.FuncMap{
 	"add": add,
@@ -32,16 +34,21 @@ func init() {
 	tpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*"))
 	errLog, err = os.OpenFile("logs/errors.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalln("Failed ot open error log file:", err)
+		log.Fatalln("Failed to open error log file:", err)
 	}
 	userLog, err = os.OpenFile("logs/userLoginAndLogout.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalln("Failed ot open error log file:", err)
+		log.Fatalln("Failed to open user log file:", err)
+	}
+	adminLog, err = os.OpenFile("logs/adminLoginAndLogout.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed to open admin log file:", err)
 	}
 
 	flags := log.LstdFlags | log.Lshortfile
 	ErrorLogger = log.New(io.MultiWriter(errLog, os.Stderr), "ERROR: ", flags)
 	UserLogger = log.New(io.MultiWriter(userLog, os.Stderr), "USER LOG: ", flags)
+	AdminLogger = log.New(io.MultiWriter(adminLog, os.Stderr), "ADMIN LOG: ", flags)
 }
 
 func main() {
@@ -101,6 +108,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
+		if username == "" || password == "" {
+			http.Error(w, "One or more inputs are empty", http.StatusForbidden)
+			return
+		}
+
 		if !IsAlphabetic(username) {
 			err := errors.New("username includes invalid characters")
 			UserLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
@@ -137,7 +149,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	err := tpl.ExecuteTemplate(w, "login.html", nil)
 	if err != nil {
-		ErrorLogger.Panicf("error executing server: %v", err)
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
@@ -159,7 +171,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	//execute template
 	err := tpl.ExecuteTemplate(w, "signup.html", nil)
 	if err != nil {
-		ErrorLogger.Panicf("error executing server: %v", err)
+		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
