@@ -6,7 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -14,12 +17,31 @@ var tpl *template.Template
 var booking *BookingInfoNode
 var wg sync.WaitGroup
 
+var errLog *os.File
+var userLog *os.File
+
+var ErrorLogger *log.Logger
+var UserLogger *log.Logger
+
 var funcMap = template.FuncMap{
 	"add": add,
 }
 
 func init() {
+	var err error
 	tpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*"))
+	errLog, err = os.OpenFile("logs/errors.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed ot open error log file:", err)
+	}
+	userLog, err = os.OpenFile("logs/userLoginAndLogout.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed ot open error log file:", err)
+	}
+
+	flags := log.LstdFlags | log.Lshortfile
+	ErrorLogger = log.New(io.MultiWriter(errLog, os.Stderr), "ERROR: ", flags)
+	UserLogger = log.New(io.MultiWriter(userLog, os.Stderr), "USER LOG: ", flags)
 }
 
 func main() {
@@ -28,6 +50,18 @@ func main() {
 			fmt.Println("Recovered. Error:\n", r)
 		}
 	}()
+	defer func(errLog *os.File) {
+		err := errLog.Close()
+		if err != nil {
+			ErrorLogger.Fatalln("unable to close error.log")
+		}
+	}(errLog)
+	defer func(userLog *os.File) {
+		err := userLog.Close()
+		if err != nil {
+			ErrorLogger.Fatalln("unable to close userLoginAndLogout.log")
+		}
+	}(userLog)
 
 	router := mux.NewRouter()
 
@@ -54,7 +88,7 @@ func main() {
 	err := http.ListenAndServeTLS(":5221", "ssl/cert.pem", "ssl/key.pem", router)
 	//err := http.ListenAndServe("localhost:5221", nil)
 	if err != nil {
-		panic(errors.New("error starting server"))
+		ErrorLogger.Fatalf("error starting server: %v", err)
 	}
 }
 
@@ -67,29 +101,43 @@ func login(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
-		if username == "" || password == "" {
-			http.Error(w, "One or more inputs are empty", http.StatusForbidden)
+		if !IsAlphabetic(username) {
+			err := errors.New("username includes invalid characters")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
+		if !IsAlphanumeric(password) {
+			err := errors.New("password includes invalid characters")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
 			return
 		}
 
 		myUser, ok := mapUsers[username]
 		if !ok {
+			err := errors.New("username not found")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
 			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
 			return
 		}
 		err := bcrypt.CompareHashAndPassword(myUser.Password, []byte(password))
 		if err != nil {
+			err := errors.New("wrong password")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
 			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
 			return
 		}
 
 		setSessionIDCookie(w, username) //TODO set cookie expiry
+		UserLogger.Printf("LOGIN SUCCESSFUL: %s logged in", username)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	err := tpl.ExecuteTemplate(w, "login.html", nil)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing server: %v", err)
 	}
 }
 
@@ -111,16 +159,13 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	//execute template
 	err := tpl.ExecuteTemplate(w, "signup.html", nil)
 	if err != nil {
-		panic(errors.New("error executing template"))
+		ErrorLogger.Panicf("error executing server: %v", err)
 	}
 }
 
-func logout(w http.ResponseWriter, r *http.Request) { //FIXME logout does not work with validation
-	//if getUser(r).Username != "" {
-	//	http.Redirect(w, r, "/", http.StatusSeeOther)
-	//	return
-	//}
+func logout(w http.ResponseWriter, r *http.Request) {
 
+	UserLogger.Printf("USER LOGOUT: %v has logged out", getUser(r).Username)
 	sessionCookie, _ := r.Cookie("sessionId")
 
 	delete(mapSessions, sessionCookie.Value)
