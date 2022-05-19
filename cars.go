@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 )
 
 var carsList = []string{"Car1", "Car2", "Car3", "Car4"}
@@ -32,7 +31,7 @@ func getCarArr(car string) *[365][24]*BookingInfoNode {
 	case "Car4":
 		return &car4
 	default:
-		fmt.Println(errors.New("invalid car"))
+		ErrorLogger.Println(errors.New("invalid car"))
 		return nil
 	}
 }

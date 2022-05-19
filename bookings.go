@@ -82,7 +82,7 @@ func (b *LinkedList) makeNewBooking(car string, date string, bookingTime int, us
 	return newBookingInfoNode, nil
 }
 
-func change(a []*BookingInfoNode, node *BookingInfoNode) []*BookingInfoNode {
+func AppendNodeToSlice(a []*BookingInfoNode, node *BookingInfoNode) []*BookingInfoNode {
 	a = append(a, node)
 	return a
 }

@@ -7,7 +7,7 @@ import (
 var timeFormat = "02/01/2006"
 
 func convertDate(date string) int {
-	// make array of months in accumalated days not including current month's days
+	// make array of months in accumulated days not including current month's days
 	// add date given by user.
 	var (
 		daysInMonths = [12]int{0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334}
@@ -87,16 +87,6 @@ func sortBookingsByTime(arr []*BookingInfoNode, n int) []*BookingInfoNode {
 // func updateCarArr(ptr *[365][24]*BookingInfoNode, index1 int, index2 int, address *BookingInfoNode) {
 // 	ptr[index1][index2] = address
 // }
-
-//func checkDate(date string) error {
-//	parsedDate, err := time.Parse(timeFormat, date)
-//	if err != nil {
-//		return err
-//	} else if parsedDate.Before(time.Now()) {
-//		return errors.New("date given has passed")
-//	}
-//	return nil
-//}
 
 func binarySearchDate(arr []*BookingInfoNode, target string) int {
 	first := 0
