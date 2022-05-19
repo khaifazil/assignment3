@@ -1,4 +1,4 @@
-package main
+package limoBookingApp
 
 import (
 	"golang.org/x/crypto/bcrypt"
@@ -17,7 +17,8 @@ func init() {
 	mapAdmins["admin"] = admin{Username: "admin", Password: bPassword}
 }
 
-func getAdmin(r *http.Request) admin {
+//GetAdmin gets the Admin user from the cookie sessionID and returns the admin user
+func GetAdmin(r *http.Request) admin {
 	// get current session cookie
 	sessionCookie, err := r.Cookie("sessionId")
 	if err != nil { //if no cookie, just return empty user

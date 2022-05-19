@@ -1,4 +1,4 @@
-package main
+package limoBookingApp
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/exp/slices"
 	"net/http"
+	"time"
 )
 
 type user struct {
@@ -27,7 +28,8 @@ func init() {
 	mapUsers["iza"] = user{"iza", bPassword, "iza", "zainuddin", []*BookingInfoNode{}}
 }
 
-func getUser(r *http.Request) user {
+//GetUser gets the current logged in user from the SessionID stored in the client's cookie
+func GetUser(r *http.Request) user {
 	// get current session cookie
 	sessionCookie, err := r.Cookie("sessionId")
 	if err != nil { //if no cookie, just return empty user
@@ -42,7 +44,8 @@ func getUser(r *http.Request) user {
 	return myUser
 }
 
-func createUser(w http.ResponseWriter, r *http.Request) {
+//CreateUser collects and creates a new user and stores it in the proper maps. Function also sets the session Cookie
+func CreateUser(w http.ResponseWriter, r *http.Request) {
 	//get inputs (username, password, firstname, lastname)
 	username := r.FormValue("username")
 	password := r.FormValue("password")
@@ -104,18 +107,20 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	mapUsers[username] = newUser
 	//generate & set sessionID with function
-	setSessionIDCookie(w, username)
+	SetSessionIDCookie(w, username)
 	UserLogger.Printf("SIGNUP SUCCESSFUL: %s signed up", username)
 	UserLogger.Printf("LOGIN SUCCESSFUL: %s logged in", username)
 }
 
-func setSessionIDCookie(w http.ResponseWriter, username string) {
+//SetSessionIDCookie sets the sessionID cookie to the client's browser.
+func SetSessionIDCookie(w http.ResponseWriter, username string) {
 	//generate new UUID
 	id := uuid.NewV4()
 	//create new cookie with name and UUID
 	sessionCookie := &http.Cookie{
-		Name:  "sessionId",
-		Value: id.String(),
+		Name:    "sessionId",
+		Value:   id.String(),
+		Expires: time.Now().AddDate(0, 0, 7), //set to expire in 7 days
 	}
 	//set cookie
 	http.SetCookie(w, sessionCookie)
@@ -123,7 +128,8 @@ func setSessionIDCookie(w http.ResponseWriter, username string) {
 	mapSessions[sessionCookie.Value] = username
 }
 
-func deleteBookingUserArr(userNode user, bookingNode *BookingInfoNode) error {
+//DeleteBookingUserArr deletes *BookingInfoNode from the given user's bookings array.
+func DeleteBookingUserArr(userNode user, bookingNode *BookingInfoNode) error {
 	if index := slices.Index(userNode.UserBookings, bookingNode); index == -1 {
 		return errors.New("booking not found")
 	} else {

@@ -1,22 +1,120 @@
-package main
+package limoBookingApp
 
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
 )
 
-func index(w http.ResponseWriter, r *http.Request) {
-	currentUser := getUser(r)
+//Index is the handler for the user index page
+func Index(w http.ResponseWriter, r *http.Request) {
+	currentUser := GetUser(r)
 	err := tpl.ExecuteTemplate(w, "index.html", currentUser)
 	if err != nil {
 		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
-func newBookingPage(w http.ResponseWriter, r *http.Request) {
-	if getUser(r).Username == "" {
+//Login is the handler for the user login page
+func Login(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username != "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		if username == "" || password == "" {
+			http.Error(w, "One or more inputs are empty", http.StatusForbidden)
+			return
+		}
+
+		if !IsAlphabetic(username) {
+			err := errors.New("username includes invalid characters")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
+		if !IsAlphanumeric(password) {
+			err := errors.New("password includes invalid characters")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
+		myUser, ok := mapUsers[username]
+		if !ok {
+			err := errors.New("username not found")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: '%s', %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+		err := bcrypt.CompareHashAndPassword(myUser.Password, []byte(password))
+		if err != nil {
+			err := errors.New("wrong password")
+			UserLogger.Printf("LOGIN UNSUCCESSFUL: %v tried to login, %v", username, err)
+			http.Error(w, "Username and/or password is not valid", http.StatusUnauthorized)
+			return
+		}
+
+		SetSessionIDCookie(w, username)
+		UserLogger.Printf("LOGIN SUCCESSFUL: %s logged in", username)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	err := tpl.ExecuteTemplate(w, "login.html", nil)
+	if err != nil {
+		ErrorLogger.Panicf("error executing template: %v", err)
+	}
+}
+
+//Signup is the handler for the user signup page.
+func Signup(w http.ResponseWriter, r *http.Request) {
+
+	//check if already logged in
+	if GetUser(r).Username != "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	if r.Method == http.MethodPost {
+		//if not logged in createUser
+		CreateUser(w, r)
+
+		//redirect back to main after createUser
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	//execute template
+	err := tpl.ExecuteTemplate(w, "signup.html", nil)
+	if err != nil {
+		ErrorLogger.Panicf("error executing template: %v", err)
+	}
+}
+
+//Logout is the handler for the admin and user /logout path.
+func Logout(w http.ResponseWriter, r *http.Request) {
+
+	UserLogger.Printf("USER LOGOUT: %v has logged out", GetUser(r).Username)
+	sessionCookie, _ := r.Cookie("sessionId")
+
+	delete(mapSessions, sessionCookie.Value)
+	sessionCookie = &http.Cookie{
+		Name:   "sessionId",
+		Value:  "",
+		MaxAge: -1,
+	}
+	http.SetCookie(w, sessionCookie)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+//NewBookingPage is the handler for the user make new booking page.
+func NewBookingPage(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -32,7 +130,7 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 		}
 		date := r.FormValue("date")
 		date = StripHtmlRegex(date)
-		if err := checkDate(date); err != nil {
+		if err := CheckDate(date); err != nil {
 			_, err := fmt.Fprintf(w, "%v, go back to change date", err)
 			if err != nil {
 				ErrorLogger.Println(err)
@@ -47,7 +145,7 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		userName := getUser(r).Username
+		userName := GetUser(r).Username
 		pickUp := r.FormValue("pickUp")
 		pickUp = StripHtmlRegex(pickUp)
 		dropOff := r.FormValue("dropOff")
@@ -60,7 +158,7 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		if !checkContactLen(contact) {
+		if !CheckContactLen(contact) {
 			_, err := fmt.Fprintln(w, "Invalid contact number, go back to input new contact number")
 			if err != nil {
 				ErrorLogger.Println(err)
@@ -70,7 +168,7 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 		remarks := r.FormValue("remarks")
 		remarks = StripHtmlRegex(remarks)
 
-		booking, err = bookings.makeNewBooking(car, date, bookingTime, userName, pickUp, dropOff, contact, remarks)
+		booking, err = bookings.MakeNewBooking(car, date, bookingTime, userName, pickUp, dropOff, contact, remarks)
 		if err != nil {
 			_, err := fmt.Fprintf(w, "%v", err)
 			if err != nil {
@@ -82,8 +180,8 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 
 		myUser := mapUsers[userName]
 		myUser.UserBookings = AppendNodeToSlice(myUser.UserBookings, booking)
-		myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
-		myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
+		myUser.UserBookings = SortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
+		myUser.UserBookings = SortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
 		mapUsers[userName] = myUser
 
 		http.Redirect(w, r, "/booking_confirmed", http.StatusSeeOther)
@@ -95,8 +193,9 @@ func newBookingPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func bookingConfirmed(w http.ResponseWriter, r *http.Request) {
-	if getUser(r).Username == "" {
+//BookingConfirmed is the handler for the user booking confirmed page.
+func BookingConfirmed(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -107,12 +206,13 @@ func bookingConfirmed(w http.ResponseWriter, r *http.Request) {
 	booking = nil
 }
 
-func viewAllBookings(w http.ResponseWriter, r *http.Request) {
-	if getUser(r).Username == "" {
+//ViewAllBookings is the handler for the user view all bookings page.
+func ViewAllBookings(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
-	userBookings := getUser(r).UserBookings
+	userBookings := GetUser(r).UserBookings
 
 	err := tpl.ExecuteTemplate(w, "viewAllBookings.html", userBookings)
 	if err != nil {
@@ -120,9 +220,10 @@ func viewAllBookings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func changeBookingPage(w http.ResponseWriter, r *http.Request) {
+//ChangeBookingPage is the handler for the user change bookings page.
+func ChangeBookingPage(w http.ResponseWriter, r *http.Request) {
 	//validate login
-	if getUser(r).Username == "" {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -132,8 +233,8 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 		bookingId := r.FormValue("bookingId")
 		bookingId = StripHtmlRegex(bookingId)
 		//iterate through slice to get bookingNode
-		myUser := getUser(r)
-		booking, err = searchId(myUser.UserBookings, bookingId)
+		myUser := GetUser(r)
+		booking, err = SearchId(myUser.UserBookings, bookingId)
 		if err != nil {
 			_, err := fmt.Fprintf(w, "there are no bookings with that Booking ID, go back to re-enter ID")
 			if err != nil {
@@ -148,23 +249,24 @@ func changeBookingPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChanges(w http.ResponseWriter, r *http.Request) {
-	//myUser := getUser(r)
-	if getUser(r).Username == "" {
+//GetChanges is the handler for the user getChanges path
+func GetChanges(w http.ResponseWriter, r *http.Request) {
+	//myUser := GetUser(r)
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
 
 	if r.Method == http.MethodPost {
 		//collect old car data
-		oldCarArr := getCarArr(booking.Car)
-		oldDate := convertDate(booking.Date)
-		oldTime := convertTime(booking.BookingTime)
+		oldCarArr := GetCarArr(booking.Car)
+		oldDate := ConvertDate(booking.Date)
+		oldTime := ConvertTime(booking.BookingTime)
 
 		car := r.FormValue("cars")
 		date := r.FormValue("date")
 		date = StripHtmlRegex(date)
-		if err := checkDate(date); err != nil {
+		if err := CheckDate(date); err != nil {
 			_, err := fmt.Fprintf(w, "%v, go back to change date", err)
 			if err != nil {
 				ErrorLogger.Println(err)
@@ -184,7 +286,7 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		if !checkContactLen(contact) {
+		if !CheckContactLen(contact) {
 			_, err := fmt.Fprintln(w, "Invalid contact number, go back to input new contact number")
 			if err != nil {
 				ErrorLogger.Println(err)
@@ -215,9 +317,9 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 			car = booking.Car
 		}
 		//collect new car data
-		newCarArr := getCarArr(car)
-		newDate := convertDate(date)
-		newTime := convertTime(bookingTime)
+		newCarArr := GetCarArr(car)
+		newDate := ConvertDate(date)
+		newTime := ConvertTime(bookingTime)
 
 		if newCarArr[newDate][newTime] != nil { //check for empty timeslot
 			_, err := fmt.Fprintf(w, "Error: %v , go back to select a new slot", errors.New("there is already a booking at that time and date"))
@@ -250,10 +352,10 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 		newCarArr[newDate][newTime] = oldCarArr[oldDate][oldTime]
 		oldCarArr[oldDate][oldTime] = nil
 		//sort userBookings slice
-		myUser := mapUsers[getUser(r).Username]
-		myUser.UserBookings = sortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
-		myUser.UserBookings = sortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
-		mapUsers[getUser(r).Username] = myUser
+		myUser := mapUsers[GetUser(r).Username]
+		myUser.UserBookings = SortBookingsByTime(myUser.UserBookings, len(myUser.UserBookings))
+		myUser.UserBookings = SortBookingsByDate(myUser.UserBookings, len(myUser.UserBookings))
+		mapUsers[GetUser(r).Username] = myUser
 		http.Redirect(w, r, "/print_changed_booking", http.StatusSeeOther)
 		return
 	}
@@ -264,8 +366,9 @@ func getChanges(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func printChangedBooking(w http.ResponseWriter, r *http.Request) {
-	if getUser(r).Username == "" {
+//PrintChangedBooking is the handler for the Print changed booking page.
+func PrintChangedBooking(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -276,9 +379,10 @@ func printChangedBooking(w http.ResponseWriter, r *http.Request) {
 	booking = nil
 }
 
-func deleteBookingPage(w http.ResponseWriter, r *http.Request) {
+//DeleteBookingPage is the handler for the user delete booking page.
+func DeleteBookingPage(w http.ResponseWriter, r *http.Request) {
 	//validate login
-	if getUser(r).Username == "" {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -288,8 +392,8 @@ func deleteBookingPage(w http.ResponseWriter, r *http.Request) {
 		bookingId := r.FormValue("bookingId")
 		bookingId = StripHtmlRegex(bookingId)
 		//iterate through slice to get bookingNode
-		myUser := getUser(r)
-		booking, err = searchId(myUser.UserBookings, bookingId)
+		myUser := GetUser(r)
+		booking, err = SearchId(myUser.UserBookings, bookingId)
 		if err != nil {
 			_, err := fmt.Fprintf(w, "there are no bookings with that Booking ID, go back to re-enter ID")
 			if err != nil {
@@ -304,18 +408,19 @@ func deleteBookingPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteBooking(w http.ResponseWriter, r *http.Request) {
-	if getUser(r).Username == "" {
+//DeleteBooking is the handler for the delete booking path.
+func DeleteBooking(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
 
-	myUser := getUser(r)
-	deleteFromCarsArr(booking)
-	if err := deleteBookingUserArr(myUser, booking); err != nil {
+	myUser := GetUser(r)
+	DeleteFromCarsArr(booking)
+	if err := DeleteBookingUserArr(myUser, booking); err != nil {
 		ErrorLogger.Printf("error: %s", err)
 	}
-	if err := bookings.deleteBookingNode(booking); err != nil {
+	if err := bookings.DeleteBookingNode(booking); err != nil {
 		ErrorLogger.Printf("error: %s", err)
 	}
 	booking = nil

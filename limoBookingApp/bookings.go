@@ -1,4 +1,4 @@
-package main
+package limoBookingApp
 
 import (
 	"errors"
@@ -27,12 +27,14 @@ type LinkedList struct {
 }
 
 var bookings = &LinkedList{nil, nil, 0}
+var booking *BookingInfoNode
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func makeRandomBookingId(length int) string {
+//MakeRandomBookingId makes a random string of variable length and returns the string
+func MakeRandomBookingId(length int) string {
 
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bookingId := make([]byte, length)
@@ -42,17 +44,18 @@ func makeRandomBookingId(length int) string {
 	return string(bookingId)
 }
 
-func (b *LinkedList) makeNewBooking(car string, date string, bookingTime int, userName string, pickUp string, dropOff string, contactInfo int, remarks string) (*BookingInfoNode, error) {
-	t := convertTime(bookingTime)
-	d := convertDate(date)
-	carArr := getCarArr(car)
+//MakeNewBooking collects the user input and proceeds to make a new booking node in the linked list. Returns a pointer to the new booking node and any errors
+func (b *LinkedList) MakeNewBooking(car string, date string, bookingTime int, userName string, pickUp string, dropOff string, contactInfo int, remarks string) (*BookingInfoNode, error) {
+	t := ConvertTime(bookingTime)
+	d := ConvertDate(date)
+	carArr := GetCarArr(car)
 
 	//fmt.Println(carArr[d][t])
 	if carArr[d][t] != nil {
 		return nil, errors.New("there is already a booking at that time and date")
 	}
 
-	bookingId := makeRandomBookingId(6)
+	bookingId := MakeRandomBookingId(6)
 
 	newBookingInfoNode := &BookingInfoNode{
 		Car:         car,
@@ -82,12 +85,14 @@ func (b *LinkedList) makeNewBooking(car string, date string, bookingTime int, us
 	return newBookingInfoNode, nil
 }
 
+//AppendNodeToSlice appends a pointer to a bookingInfoNode to the slice parameter. Returns slice.
 func AppendNodeToSlice(a []*BookingInfoNode, node *BookingInfoNode) []*BookingInfoNode {
 	a = append(a, node)
 	return a
 }
 
-func recursiveSeqSearchId(length int, start int, arr []*BookingInfoNode, target string) (*BookingInfoNode, int, error) {
+//RecursiveSeqSearchId is a recursive function that searches in the slice parameter for the target string parameter. Returns pointer to BookingInfoNode, index of target and error if target is not found in slice.
+func RecursiveSeqSearchId(length int, start int, arr []*BookingInfoNode, target string) (*BookingInfoNode, int, error) {
 	if start > length-1 {
 		return nil, 0, errors.New("there are no bookings with that ID")
 	} else {
@@ -95,20 +100,22 @@ func recursiveSeqSearchId(length int, start int, arr []*BookingInfoNode, target 
 		if target == arr[start].BookingId {
 			return arr[start], start, nil
 		} else {
-			return recursiveSeqSearchId(length, start+1, arr, target)
+			return RecursiveSeqSearchId(length, start+1, arr, target)
 		}
 	}
 }
 
-func searchId(arr []*BookingInfoNode, target string) (*BookingInfoNode, error) {
-	booking, _, err := recursiveSeqSearchId(len(arr), 0, arr, target)
+//SearchId is the wrapper function for RecursiveSeqSearchId
+func SearchId(arr []*BookingInfoNode, target string) (*BookingInfoNode, error) {
+	booking, _, err := RecursiveSeqSearchId(len(arr), 0, arr, target)
 	if err != nil {
 		return nil, err
 	}
 	return booking, err
 }
 
-func (b *LinkedList) deleteBookingNode(ptr *BookingInfoNode) error {
+//DeleteBookingNode deletes the *BookingInfoNode in a linked list. Returns any errors.
+func (b *LinkedList) DeleteBookingNode(ptr *BookingInfoNode) error {
 	if b.Size == 0 {
 		return errors.New("linked list is empty")
 	}
@@ -147,7 +154,8 @@ func (b *LinkedList) deleteBookingNode(ptr *BookingInfoNode) error {
 	return nil
 }
 
-func (b *LinkedList) appendAllToSlice() ([]*BookingInfoNode, error) {
+//AppendAllToSlice appends all the *BookingInfoNodes in a linked list into a slice. Returns the slice and any errors.
+func (b *LinkedList) AppendAllToSlice() ([]*BookingInfoNode, error) {
 	if b.Head == nil {
 		return nil, errors.New("there are no bookings")
 	}

@@ -5,3 +5,6 @@ USER LOG: 2022/05/19 05:14:40 main.go:111: LOGIN UNSUCCESSFUL: Muthermutton, use
 USER LOG: 2022/05/19 05:16:08 main.go:96: LOGIN UNSUCCESSFUL: 1231, username includes invalid characters
 USER LOG: 2022/05/19 05:16:32 main.go:103: LOGIN UNSUCCESSFUL: khai tried to login, password includes invalid characters
 USER LOG: 2022/05/19 05:17:23 main.go:96: LOGIN UNSUCCESSFUL: '123123', username includes invalid characters
+USER LOG: 2022/05/19 08:43:20 main.go:146: LOGIN SUCCESSFUL: khai logged in
+USER LOG: 2022/05/19 08:47:36 main.go:180: USER LOGOUT: khai has logged out
+USER LOG: 2022/05/19 16:09:57 userFeatures.go:63: LOGIN SUCCESSFUL: khai logged in

@@ -1,4 +1,4 @@
-package main
+package limoBookingApp
 
 import (
 	"errors"
@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-func adminLogin(w http.ResponseWriter, r *http.Request) {
+//AdminLogin is the handler for the admin login page
+func AdminLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
@@ -46,7 +47,7 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		setSessionIDCookie(w, username)
+		SetSessionIDCookie(w, username)
 		AdminLogger.Printf("LOGIN SUCCESSFUL: %s logged in", username)
 		http.Redirect(w, r, "/admin_index", http.StatusSeeOther)
 		return
@@ -57,16 +58,18 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func adminIndex(w http.ResponseWriter, r *http.Request) {
-	currentAdmin := getAdmin(r)
+//AdminIndex is the handler for the admin index page
+func AdminIndex(w http.ResponseWriter, r *http.Request) {
+	currentAdmin := GetAdmin(r)
 	err := tpl.ExecuteTemplate(w, "adminIndex.html", currentAdmin)
 	if err != nil {
 		ErrorLogger.Panicf("error executing template: %v", err)
 	}
 }
 
-func deleteUsers(w http.ResponseWriter, r *http.Request) {
-	if getAdmin(r).Username == "" {
+//DeleteUsers is the handler for the deleteUsers page
+func DeleteUsers(w http.ResponseWriter, r *http.Request) {
+	if GetAdmin(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -74,8 +77,8 @@ func deleteUsers(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		myUser := mapUsers[username]
 		for _, v := range myUser.UserBookings {
-			deleteFromCarsArr(v)
-			err := bookings.deleteBookingNode(v)
+			DeleteFromCarsArr(v)
+			err := bookings.DeleteBookingNode(v)
 			if err != nil {
 				ErrorLogger.Println(err)
 			}
@@ -89,8 +92,9 @@ func deleteUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteSessions(w http.ResponseWriter, r *http.Request) {
-	if getAdmin(r).Username == "" {
+//DeleteSessions is the handler for the DeleteSessions page
+func DeleteSessions(w http.ResponseWriter, r *http.Request) {
+	if GetAdmin(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -104,18 +108,19 @@ func deleteSessions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
+//AdminViewDeleteBookings is the handler for the admin view and delete bookings page
+func AdminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 
-	if getAdmin(r).Username == "" {
+	if GetAdmin(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
-	toDisplay, _ := bookings.appendAllToSlice()
+	toDisplay, _ := bookings.AppendAllToSlice()
 
 	if r.Method == http.MethodPost {
 		id := r.FormValue("bookingId")
 		//fmt.Println(id)
-		if toDelete, err := searchId(toDisplay, id); err != nil {
+		if toDelete, err := SearchId(toDisplay, id); err != nil {
 			ErrorLogger.Printf("searchId error: %v", err)
 			_, err := fmt.Fprintf(w, "searchId error: %v", err)
 			if err != nil {
@@ -124,11 +129,11 @@ func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 		} else {
 			myUser := mapUsers[toDelete.UserName]
 			wg.Add(1)
-			go deleteFromCarsArr(toDelete)
-			if err := deleteBookingUserArr(myUser, toDelete); err != nil {
+			go DeleteFromCarsArr(toDelete)
+			if err := DeleteBookingUserArr(myUser, toDelete); err != nil {
 				ErrorLogger.Println(err)
 			}
-			if err := bookings.deleteBookingNode(toDelete); err != nil {
+			if err := bookings.DeleteBookingNode(toDelete); err != nil {
 				ErrorLogger.Println(err)
 			}
 			wg.Done()
@@ -143,8 +148,9 @@ func adminViewDeleteBookings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func adminDeleteBookingConfirmed(w http.ResponseWriter, r *http.Request) {
-	if getAdmin(r).Username == "" {
+//AdminDeleteBookingConfirmed is the handler for the admin delete booking confirmed page
+func AdminDeleteBookingConfirmed(w http.ResponseWriter, r *http.Request) {
+	if GetAdmin(r).Username == "" {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}

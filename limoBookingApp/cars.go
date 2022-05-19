@@ -1,4 +1,4 @@
-package main
+package limoBookingApp
 
 import (
 	"errors"
@@ -20,7 +20,8 @@ func checkCarSelection(car string) error {
 	return errors.New("car is not in selection")
 }
 
-func getCarArr(car string) *[365][24]*BookingInfoNode {
+//GetCarArr takes the user car selection input and returns the correct car array
+func GetCarArr(car string) *[365][24]*BookingInfoNode {
 	switch car {
 	case "Car1":
 		return &car1
@@ -36,9 +37,10 @@ func getCarArr(car string) *[365][24]*BookingInfoNode {
 	}
 }
 
-func deleteFromCarsArr(ptr *BookingInfoNode) {
-	t := convertTime(ptr.BookingTime)
-	d := convertDate(ptr.Date)
-	carArr := getCarArr(ptr.Car)
+//DeleteFromCarsArr deletes *BookingInfoNode from a car array
+func DeleteFromCarsArr(ptr *BookingInfoNode) {
+	t := ConvertTime(ptr.BookingTime)
+	d := ConvertDate(ptr.Date)
+	carArr := GetCarArr(ptr.Car)
 	(*carArr)[d][t] = nil
 }
